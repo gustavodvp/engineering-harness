@@ -38,6 +38,18 @@ models:
     model: claude-sonnet-5-5
     confirmed: false
     note: Consumes the Claude budget; run per story only when the budget allows, otherwise weekly over several runs.
+  frontend:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: false
+  devops:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: false
+  dba:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: false
 budgets:
   claude:
     approx-limit: "100"

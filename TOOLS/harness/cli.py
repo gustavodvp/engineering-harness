@@ -45,7 +45,8 @@ def cmd_compose(args) -> int:
         print(f"project folder not found: {project}", file=sys.stderr)
         return 2
     story = Path(args.story).resolve() if args.story else None
-    comp = compose(repo, args.profile, args.task, project, story, set(args.stack or []))
+    tasks = set(TASK_TYPES) if "all" in args.task else set(args.task)
+    comp = compose(repo, args.profile, tasks, project, story, set(args.stack or []))
     report = export.resolution_report(repo, comp, project)
     print(export.resolution_markdown(report))
     problems = bool(comp.resolution.conflicts or comp.missing_overrides)
@@ -164,7 +165,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("compose", help="select units for a project and task, resolve, and export adapters")
     p.add_argument("project")
     p.add_argument("--profile", required=True)
-    p.add_argument("--task", required=True, choices=TASK_TYPES)
+    p.add_argument("--task", required=True, action="append", choices=TASK_TYPES + ("all",),
+                   help="task type; repeat it, or use 'all', for a workspace that serves several kinds of task")
     p.add_argument("--story", help="story file; its frontmatter may declare decides/overrides")
     p.add_argument("--stack", action="append", help="add a stack tag the detector missed (repeatable)")
     p.add_argument("--dry-run", action="store_true", help="print the resolution without writing")

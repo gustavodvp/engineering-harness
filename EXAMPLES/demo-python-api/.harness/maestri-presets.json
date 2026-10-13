@@ -14,6 +14,26 @@
     ]
   },
   {
+    "agentType": "claude_code",
+    "codexDaemonMigration": "untouched",
+    "command": "claude --model claude-sonnet-5-5",
+    "icon": "seal",
+    "id": "1714E707-A723-5DC8-BC08-CDB5D3514757",
+    "isActive": true,
+    "maestroMode": false,
+    "name": "Claude Code · sonnet-5-5",
+    "startInChatMode": false,
+    "personas": [
+      "dba",
+      "devops",
+      "frontend",
+      "harness-curator",
+      "orchestrator",
+      "reviewer",
+      "support"
+    ]
+  },
+  {
     "agentType": "open_code",
     "codexDaemonMigration": "untouched",
     "command": "opencode -m opencode-go/deepseek-v4.1-flash",
@@ -26,23 +46,6 @@
     "personas": [
       "developer",
       "qa"
-    ]
-  },
-  {
-    "agentType": "claude_code",
-    "codexDaemonMigration": "untouched",
-    "command": "claude --model claude-sonnet-5-5",
-    "icon": "seal",
-    "id": "1714E707-A723-5DC8-BC08-CDB5D3514757",
-    "isActive": true,
-    "maestroMode": false,
-    "name": "Claude Code · sonnet-5-5",
-    "startInChatMode": false,
-    "personas": [
-      "harness-curator",
-      "orchestrator",
-      "reviewer",
-      "support"
     ]
   }
 ]

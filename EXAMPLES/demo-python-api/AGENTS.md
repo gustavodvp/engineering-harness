@@ -21,7 +21,10 @@ The full rules are in the `story-delivery` workflow. Each persona's model comes 
 ### Personas
 
 - **analyst**: Turns a request into clear requirements, acceptance criteria, risks and a step-by-step implementation plan. Use for new stories, ambiguous requests, estimation and design decisions before any code is written.
+- **dba**: Data layer - schema modelling, reversible migrations, indexes, constraints, query performance and data integrity, including backfill and migration-window planning. Use for any change that touches the schema, indexes, constraints or data access patterns.
 - **developer**: Implements an approved plan in small verified steps with tests, in an isolated branch or worktree. Use for writing and changing code and tests, and for applying review or QA fixes.
+- **devops**: Packaging and operations - Docker, CI/CD pipelines, infrastructure, deploy and rollback procedures, healthchecks, logs, metrics and alerts. Use to change Dockerfiles, compose files, pipelines or service units, or to plan a deploy.
+- **frontend**: Implements user interface changes - components, screens, client state, API integration, accessibility and responsiveness - after the scope and the API contract it consumes are defined. Use for any UI change in a web or mobile frontend.
 - **harness-curator**: Post-run retrospective of agent work. Measures token and cost waste, tool errors and failed commands, checks whether the orchestrator and each persona followed the workflow and rules, and turns every lesson into a concrete, evidence-backed proposal to change a skill, rule, persona or workflow. Use after a story or ticket closes, or periodically across runs.
 - **orchestrator**: Coordinates a story or ticket end to end. Classifies the request, routes each stage to the right persona, tracks evidence and budget, and never does specialist work itself. Use as the entry point for any multi-step engineering or support request.
 - **qa**: Runs the real test suites, coverage and quality gates, checks acceptance criteria end to end and records evidence. Use to verify a change before it is closed, and to investigate test or gate failures.

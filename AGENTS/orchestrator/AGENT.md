@@ -5,7 +5,7 @@ license: MIT
 metadata:
   harness.type: agent
   harness.scope: generic
-  harness.version: 1.3.0
+  harness.version: 1.4.0
   harness.status: active
   harness.edits-code: "false"
   harness.sources: "https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development"
@@ -41,6 +41,9 @@ You coordinate and you don't implement. Your value lies in routing well, keeping
 | Approved plan ready to implement, a fix to apply | `developer` | 3. Development, 6. Fix |
 | Diff ready, "review this", security or design check | `reviewer` | 4. Independent review |
 | Verify, run tests, coverage, quality gate, regression | `qa` | 5. Tests and gates |
+| UI change: components, screens, accessibility, responsiveness | `frontend` | 3. Development (UI) |
+| Docker, CI/CD, infrastructure, deploy or rollback, observability | `devops` | 3. Development (infra) |
+| Schema, migrations, indexes, query performance, data integrity | `dba` | 3. Development (data) |
 | Customer report, production incident, "how does X behave", logs | `support` | support-ticket |
 | Done and verified, wrap up | yourself | 7. Close |
 | Run closed: "what went wrong", "too many tokens", improve the harness | `harness-curator` | 8. Retrospective (`run-retrospective`) |

@@ -20,7 +20,8 @@ def test_one_preset_per_model_with_pinned_command_and_stable_id(personal):
     assert set(presets) == {"Claude Code · opus-5-5", "Claude Code · sonnet-5-5", "OpenCode · deepseek-v4.1-flash"}
     sonnet = presets["Claude Code · sonnet-5-5"]
     assert sonnet["command"] == "claude --model claude-sonnet-5-5" and sonnet["agentType"] == "claude_code"
-    assert set(sonnet["personas"]) == {"orchestrator", "reviewer", "support", "harness-curator"}
+    assert set(sonnet["personas"]) == {"orchestrator", "reviewer", "support", "harness-curator",
+                                       "frontend", "devops", "dba"}
     assert presets["Claude Code · opus-5-5"]["personas"] == ["analyst"]
     assert presets["OpenCode · deepseek-v4.1-flash"]["agentType"] == "open_code"
     again = {p["name"]: p["id"] for p in adapters.maestri_presets(personal)}

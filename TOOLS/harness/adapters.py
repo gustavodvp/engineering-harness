@@ -190,6 +190,8 @@ def maestri_script(personas: list[Unit], profile: Profile, project_rel: str) -> 
             f"  if ($LASTEXITCODE -ne 0) {{ throw \"maestri role create '{role}' failed\" }}",
             f"  Write-Output 'created role {role}'",
             f"}} else {{ Write-Output 'updated role {role}' }}",
+            # `role write` keeps the old scope; promote it when the roles must exist in every workspace.
+            f"if ($Scope -eq 'global') {{ & $maestri role edit '{role}' --scope global | Out-Null }}",
         ]
     lines += ["", "# Recruits: the model comes from the PRESET, not from the role. Install the presets first",
               f"# (Maestri closed): uv run harness maestri-presets --profile {profile.name} --install",

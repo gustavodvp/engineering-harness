@@ -85,3 +85,11 @@ def test_draft_units_are_not_loaded(mini, tmp_path):
     mini.unit("rule", "experimental", status="draft")
     comp = compose(load_repository(mini.root), "ACME", "feature", tmp_path)
     assert "generic/rule/experimental" not in ids(comp)
+
+
+def test_shared_workspace_can_compose_several_task_types():
+    repo = load_repository(REPO_ROOT)
+    comp = compose(repo, "PERSONAL", {"feature", "support", "docs"}, FIXTURES / "java-service")
+    loaded = ids(comp)
+    assert {"generic/workflow/story-delivery", "generic/workflow/support-ticket",
+            "generic/workflow/knowledge-evolution"} <= loaded

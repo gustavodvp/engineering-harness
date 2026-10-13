@@ -211,11 +211,13 @@ def story_decisions(story: Path) -> list[Decision]:
     return [Decision(k, v, "story", LAYER_STORY, False, overrides) for k, v in unit_like.decides.items()]
 
 
-def compose(repo: Repository, profile_name: str, task: str, project: Path,
+def compose(repo: Repository, profile_name: str, task: str | set[str], project: Path,
             story: Path | None = None, extra_stack: set[str] | None = None) -> Composition:
+    """`task` is one task type or a set of them (a shared workspace serves several kinds of task)."""
     chain = profile_chain(repo, profile_name)
     stack = detect_stack(project) | (extra_stack or set())
-    context = {"task": {task}, "stack": stack}
+    tasks = {task} if isinstance(task, str) else set(task)
+    context = {"task": tasks, "stack": stack}
     selected, skipped = [], []
     for unit in repo.units:
         if unit.status != "active" or unit.type == "agent":

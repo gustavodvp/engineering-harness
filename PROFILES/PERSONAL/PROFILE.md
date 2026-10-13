@@ -38,6 +38,21 @@ models:
     model: claude-sonnet-5-5
     confirmed: true
     note: Judgment over logs and rules; Sonnet balances quality and cost. Runs after delivery.
+  frontend:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: true
+    note: UI quality and accessibility judgment; migrated from the control-plane frontend agent.
+  devops:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: true
+    note: Infrastructure mistakes are costly; Sonnet rather than the bulk model.
+  dba:
+    tool: claude-code
+    model: claude-sonnet-5-5
+    confirmed: true
+    note: Migrations and data integrity; Sonnet rather than the bulk model.
 tools:
   claude-code:
     available: true
