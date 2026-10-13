@@ -73,3 +73,4 @@ Ver [DOCS/compatibilidade.md](DOCS/compatibilidade.md). Em resumo (2026-10-12):
 - [Como adicionar skills, regras, perfis e ambientes](DOCS/como-evoluir.md)
 - [Avaliação de skills de terceiros (ledger)](DOCS/avaliacao-de-skills.md)
 - [Compatibilidade verificada](DOCS/compatibilidade.md)
+- [Uso no ambiente do Itaú (passo a passo depois do clone)](DOCS/uso-no-itau.md)
