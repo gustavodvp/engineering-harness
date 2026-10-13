@@ -61,9 +61,12 @@ def test_maestri_recruits_pin_profile_models(tmp_path):
     project = project_copy(tmp_path)
     run_compose(project, profile="PERSONAL")
     script = (project / ".harness/maestri-roles.ps1").read_text(encoding="utf-8")
-    assert '--role "Developer" --command "opencode -m opencode-go/deepseek-v4.1-flash"' in script
-    assert '--role "Reviewer" --command "claude --model claude-sonnet-5-5"' in script
-    assert '--role "Harness Curator" --command "claude --model claude-sonnet-5-5"' in script
+    assert '--role "Developer" --preset "OpenCode · deepseek-v4.1-flash"' in script
+    assert '--role "Reviewer" --preset "Claude Code · sonnet-5-5"' in script
+    assert '--role "Harness Curator" --preset "Claude Code · sonnet-5-5"' in script
+    assert '--role "Analyst" --preset "Claude Code · opus-5-5"' in script
+    assert '--role "Orchestrator" --preset "Claude Code · sonnet-5-5"' in script  # owner rule: lighter model
+    assert 'or: --command "opencode -m opencode-go/deepseek-v4.1-flash"' in script
     # exact-name handling: no regex over `role list` (it matched "QA Frontend Atlas" for "QA")
     assert "-match '(?m)" not in script and "No role named" in script and "role create 'QA'" in script
     assert "not the Maestro" in script  # fails fast with a clear message when run by a recruit
@@ -141,3 +144,34 @@ def test_generated_frontmatter_is_valid_yaml_for_claude_agents(tmp_path):
     for f in (project / ".claude/agents").glob("*.md"):
         fm = yaml.safe_load(f.read_text(encoding="utf-8").split("---")[1])
         assert fm["name"] == f.stem and fm["description"]
+
+
+def test_compose_never_overwrites_project_files_it_does_not_own(tmp_path, capsys):
+    project = project_copy(tmp_path)
+    own = project / ".claude" / "agents" / "developer.md"
+    own.parent.mkdir(parents=True)
+    own.write_text("---\nname: developer\ndescription: project's own agent\n---\nkeep me\n", encoding="utf-8")
+    args = ["compose", str(project), "--profile", "PERSONAL", "--task", "feature"]
+    assert main(args) == 4
+    assert own.read_text(encoding="utf-8").endswith("keep me\n") and not (project / ".harness").exists()
+    assert ".claude/agents/developer.md" in capsys.readouterr().err
+    assert main(args + ["--skip-foreign"]) == 0
+    assert own.read_text(encoding="utf-8").endswith("keep me\n")
+    assert (project / ".claude/agents/reviewer.md").is_file()
+    capsys.readouterr()
+    # second run: harness files are owned (lock); only the project's own file is still reported
+    assert main(args) == 4
+    err = capsys.readouterr().err
+    assert ".claude/agents/developer.md" in err and ".harness/" not in err
+    assert main(args + ["--skip-foreign"]) == 0
+    assert own.read_text(encoding="utf-8").endswith("keep me\n")
+
+
+def test_agents_md_states_mandatory_analyst_first_flow(tmp_path):
+    project = project_copy(tmp_path)
+    run_compose(project, profile="PERSONAL")
+    text = (project / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Mandatory flow for every change" in text
+    assert text.index("**analyst** first") < text.index("**developer** only after")
+    # owner rule: simple, explicit actions skip the analyst and go straight to an executor
+    assert "**direct task**" in text and "In doubt, analyse" in text

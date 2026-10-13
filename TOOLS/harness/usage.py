@@ -31,6 +31,7 @@ class Agent:
     command: str
     directory: Path
     role_id: str = ""
+    persona: str = ""  # harness persona the agent plays (from its Maestri role), used to check its model
 
 
 @dataclass
@@ -75,8 +76,38 @@ def _tool_of(agent_type: str, command: str) -> str:
     return agent_type or "other"
 
 
+def _role_names() -> dict[str, str]:
+    """Maestri role id (lower case) -> role name, from preferences.json."""
+    prefs = MAESTRI_HOME / "preferences.json"
+    if not prefs.is_file():
+        return {}
+    roles = json.loads(prefs.read_text(encoding="utf-8"))["payload"].get("rolePresets", [])
+    return {r["id"].lower(): r.get("name", "") for r in roles if r.get("id")}
+
+
+def _persona(role_name: str) -> str:
+    """'Harness Curator' -> 'harness-curator', 'QA' -> 'qa'."""
+    return "-".join(role_name.lower().split())
+
+
+def model_mismatches(usages: list[Usage], profile_models: dict[str, dict]) -> list[str]:
+    """Agents whose measured model differs from the model the profile assigns to their persona."""
+    out = []
+    for u in usages:
+        expected = (profile_models.get(u.agent.persona) or {}).get("model")
+        if not expected or not u.models:
+            continue
+        wrong = {m: n for m, n in u.models.items() if m != expected and not m.endswith("/" + expected)}
+        if wrong:
+            got = ", ".join(f"{m}×{n}" for m, n in wrong.items())
+            out.append(f"**{u.agent.name}** ({u.agent.persona}): expected `{expected}`, ran on {got} "
+                       f"(command `{u.agent.command or '?'}`)")
+    return out
+
+
 def maestri_agents(workspace: str, floor: str | None) -> tuple[list[Agent], datetime | None]:
     """Terminals of a Maestri workspace floor (or the ground when floor is None) and the floor creation time."""
+    role_names = _role_names()
     for path in (MAESTRI_HOME / "workspaces").glob("*/workspace.json"):
         payload = json.loads(path.read_text(encoding="utf-8"))["payload"]
         if payload.get("name") != workspace:
@@ -97,8 +128,9 @@ def maestri_agents(workspace: str, floor: str | None) -> tuple[list[Agent], date
                 continue
             role = (term.get("assignedRoleId") or "").lower()
             directory = base / ".maestri" / "roles" / role if role else Path(term.get("workingDirectory") or base)
+            persona = "orchestrator" if term.get("isManager") else _persona(role_names.get(role, ""))
             agents.append(Agent(term.get("name", "?"), _tool_of(term.get("agentType", ""), term.get("command", "")),
-                                term.get("command", ""), directory, role))
+                                term.get("command", ""), directory, role, persona))
         if floor:
             # The Maestro (manager) normally stays on the ground and coordinates the floor.
             for node in payload.get("nodes", []):
@@ -106,7 +138,8 @@ def maestri_agents(workspace: str, floor: str | None) -> tuple[list[Agent], date
                 if term and term.get("isManager"):
                     agents.append(Agent(f"{term.get('name', 'Maestro')} (Maestro)",
                                         _tool_of(term.get("agentType", ""), term.get("command", "")),
-                                        term.get("command", ""), Path(term.get("workingDirectory") or ground_dir)))
+                                        term.get("command", ""), Path(term.get("workingDirectory") or ground_dir),
+                                        persona="orchestrator"))
         return agents, created
     raise ValueError(f"Maestri workspace '{workspace}' not found under {MAESTRI_HOME}")
 
@@ -237,7 +270,8 @@ def collect(agents: list[Agent], since: datetime | None, until: datetime | None)
     return result
 
 
-def render_markdown(usages: list[Usage], title: str, since: datetime | None, until: datetime | None) -> str:
+def render_markdown(usages: list[Usage], title: str, since: datetime | None, until: datetime | None,
+                    mismatches: list[str] | None = None) -> str:
     lines = [f"# Usage — {title}", "",
              f"- window: {since.isoformat() if since else '-'} → {until.isoformat() if until else 'now'}",
              "- source: local transcripts (Claude Code) and session exports (OpenCode); measured, not estimated", "",
@@ -250,6 +284,9 @@ def render_markdown(usages: list[Usage], title: str, since: datetime | None, unt
         lines.append(f"| {u.agent.name} | {u.agent.tool} | {models} | {u.sessions} | {u.turns} | {u.input_tokens:,} "
                      f"| {u.output_tokens:,} | {u.cache_read_tokens:,} | {u.cache_write_tokens:,} | {cost} "
                      f"| {u.tool_calls} | {len(u.tool_errors)} |")
+    if mismatches is not None:
+        lines += ["", "## Model check (measured model vs profile)", ""]
+        lines += [f"- {m}" for m in mismatches] or ["- every agent ran on the model its profile assigns"]
     lines += ["", "## Tool errors", ""]
     any_error = False
     for u in usages:
@@ -265,7 +302,7 @@ def render_markdown(usages: list[Usage], title: str, since: datetime | None, unt
 
 
 def to_json(usages: list[Usage]) -> list[dict]:
-    return [{"agent": u.agent.name, "tool": u.agent.tool, "command": u.agent.command,
+    return [{"agent": u.agent.name, "persona": u.agent.persona, "tool": u.agent.tool, "command": u.agent.command,
              "directory": str(u.agent.directory), "sessions": u.sessions, "turns": u.turns,
              "input_tokens": u.input_tokens, "output_tokens": u.output_tokens,
              "cache_read_tokens": u.cache_read_tokens, "cache_write_tokens": u.cache_write_tokens,

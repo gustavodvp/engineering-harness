@@ -6,6 +6,18 @@
 
 These rules were composed by engineering-harness. The full trace (what was loaded, why, from where, overrides and conflicts) is in `.harness/resolution.md`.
 
+### Mandatory flow for every change (orchestrators and Maestro terminals read this)
+
+0. **Classify** the request and record the class and reason in `00-orchestration.md`:
+   - **direct task**: a single explicit action with a named target and no decision to make ("delete file X", "rename Y", "run command Z") → delegate straight to an executor (`developer`, cheap model). Destructive or outward-facing actions still need the human's confirmation;
+   - **analysed change**: needs code understanding, or a choice of scope, approach, architecture or files, or is ambiguous → follow the steps below. In doubt, analyse.
+1. **analyst** first: scope, architecture impact, risks and plan in `.harness/runs/<story>/01-analysis.md` and `02-plan.md`.
+2. **developer** only after `02-plan.md` is approved. The orchestrator never implements itself.
+3. **reviewer** on a different model from the developer → 4. **qa** with real gates → fixes → close.
+5. **harness-curator** retrospective after closing (non-blocking).
+
+The full rules are in the `story-delivery` workflow. Each persona's model comes from the profile (`.harness/personas/`).
+
 ### Personas
 
 - **analyst**: Turns a request into clear requirements, acceptance criteria, risks and a step-by-step implementation plan. Use for new stories, ambiguous requests, estimation and design decisions before any code is written.

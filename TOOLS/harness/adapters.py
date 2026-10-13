@@ -12,6 +12,8 @@ Formats (verified 2026-10):
 
 from __future__ import annotations
 
+import uuid
+
 import yaml
 
 from .model import Profile, Unit
@@ -95,6 +97,55 @@ def maestri_recruit_command(unit: Unit, profile: Profile) -> str | None:
     return template.format(model=a["model"]) if template else None
 
 
+# Maestri decides the model through the terminal preset (its command), never through the role: a recruit
+# opened from the UI or with a stock preset ("Claude Code" = `claude`) gets the CLI's default model.
+MAESTRI_AGENT_TYPES = {"claude-code": ("claude_code", "seal", "Claude Code"),
+                       "opencode": ("open_code", "rectangle.portrait", "OpenCode"),
+                       "codex": ("codex", "brain", "Codex")}
+PRESET_NAMESPACE = uuid.UUID("6f1c2a52-6a7e-4c1e-9a43-2f0d2b6c9e11")
+
+
+def maestri_preset_name(tool: str, model: str) -> str:
+    """'claude-code', 'claude-opus-5-5' -> 'Claude Code · opus-5-5'."""
+    label = MAESTRI_AGENT_TYPES[tool][2]
+    short = model.split("/")[-1]
+    for prefix in ("claude-", "gpt-"):
+        short = short.removeprefix(prefix)
+    return f"{label} · {short}"
+
+
+def maestri_presets(profile: Profile) -> list[dict]:
+    """One Maestri agent preset per (tool, model) the profile assigns. Ids are stable (uuid5 of the name)."""
+    presets: dict[str, dict] = {}
+    for persona, a in sorted(profile.models.items()):
+        tool, model = a.get("tool", ""), a.get("model", "")
+        if tool not in MAESTRI_AGENT_TYPES or not model:
+            continue
+        name = maestri_preset_name(tool, model)
+        agent_type, icon, _ = MAESTRI_AGENT_TYPES[tool]
+        preset = presets.setdefault(name, {
+            "agentType": agent_type,
+            "codexDaemonMigration": "untouched",
+            "command": MAESTRI_COMMANDS[tool].format(model=model),
+            "icon": icon,
+            "id": str(uuid.uuid5(PRESET_NAMESPACE, name)).upper(),
+            "isActive": True,
+            "maestroMode": False,
+            "name": name,
+            "startInChatMode": False,
+            "personas": [],
+        })
+        preset["personas"].append(persona)
+    return list(presets.values())
+
+
+def maestri_preset_for(unit: Unit, profile: Profile) -> str | None:
+    a = _assignment(profile, unit.name)
+    if a.get("tool") in MAESTRI_AGENT_TYPES and a.get("model"):
+        return maestri_preset_name(a["tool"], a["model"])
+    return None
+
+
 def maestri_script(personas: list[Unit], profile: Profile, project_rel: str) -> str:
     """PowerShell script to run inside a Maestri terminal. Roles point at generated persona files.
 
@@ -118,7 +169,11 @@ def maestri_script(personas: list[Unit], profile: Profile, project_rel: str) -> 
     ]
     for unit in personas:
         role = maestri_role_name(unit)
-        prompt = (f"You are the {role} persona of the engineering harness ({profile.name} profile). Your project "
+        expected = _assignment(profile, unit.name).get("model")
+        model_check = (f"You are expected to run on the model {expected}; if you are running on a different model, "
+                       f"say so to the orchestrator before doing any work. " if expected else "")
+        prompt = (f"You are the {role} persona of the engineering harness ({profile.name} profile). {model_check}"
+                  f"Your project "
                   f"is the folder the orchestrator names in your task, by default {where} (run git rev-parse --show-toplevel); cd there before anything else, because you "
                   f"start inside .maestri/roles and must never commit the .maestri folder. Then read "
                   f".harness/personas/{unit.name}.md and AGENTS.md in the project and follow them. Run maestri list "
@@ -136,14 +191,18 @@ def maestri_script(personas: list[Unit], profile: Profile, project_rel: str) -> 
             f"  Write-Output 'created role {role}'",
             f"}} else {{ Write-Output 'updated role {role}' }}",
         ]
-    lines += ["", "# Recruits: the command pins the model the profile assigns to each persona."]
+    lines += ["", "# Recruits: the model comes from the PRESET, not from the role. Install the presets first",
+              f"# (Maestri closed): uv run harness maestri-presets --profile {profile.name} --install",
+              "# Without them, use the --command form, which pins the same model."]
     for unit in personas:
         a = _assignment(profile, unit.name)
         command = maestri_recruit_command(unit, profile)
+        preset = maestri_preset_for(unit, profile)
         status = "confirmed" if a.get("confirmed") else "unconfirmed"
         if command:
             lines.append(f"#   maestri recruit \"<codename>\" --role \"{maestri_role_name(unit)}\" "
-                         f"--command \"{command}\" [--floor \"<story>\"]   # {status}")
+                         f"--preset \"{preset}\" [--floor \"<story>\"]   # {status}")
+            lines.append(f"#     or: --command \"{command}\"")
         else:
             lines.append(f"#   {maestri_role_name(unit)}: tool '{a.get('tool', 'none')}' has no Maestri preset; "
                          f"run it outside the canvas")
@@ -157,7 +216,22 @@ def agents_md_block(rules: list[Unit], workflows: list[Unit], skills: list[Unit]
              "These rules were composed by engineering-harness. The full trace (what was loaded, why, from where, "
              "overrides and conflicts) is in `.harness/resolution.md`.", ""]
     if personas:
-        parts += ["### Personas", ""]
+        parts += ["### Mandatory flow for every change (orchestrators and Maestro terminals read this)", "",
+                  "0. **Classify** the request and record the class and reason in `00-orchestration.md`:",
+                  "   - **direct task**: a single explicit action with a named target and no decision to make (\"delete "
+                  "file X\", \"rename Y\", \"run command Z\") → delegate straight to an executor (`developer`, cheap "
+                  "model). Destructive or outward-facing actions still need the human's confirmation;",
+                  "   - **analysed change**: needs code understanding, or a choice of scope, approach, architecture or "
+                  "files, or is ambiguous → follow the steps below. In doubt, analyse.",
+                  "1. **analyst** first: scope, architecture impact, risks and plan in `.harness/runs/<story>/01-analysis.md`"
+                  " and `02-plan.md`.",
+                  "2. **developer** only after `02-plan.md` is approved. The orchestrator never implements itself.",
+                  "3. **reviewer** on a different model from the developer → 4. **qa** with real gates → fixes → close.",
+                  "5. **harness-curator** retrospective after closing (non-blocking).",
+                  "",
+                  "The full rules are in the `story-delivery` workflow. Each persona's model comes from the profile "
+                  "(`.harness/personas/`).",
+                  "", "### Personas", ""]
         parts += [f"- **{u.name}**: {u.description}" for u in personas]
         parts += [""]
     if skills or workflows:

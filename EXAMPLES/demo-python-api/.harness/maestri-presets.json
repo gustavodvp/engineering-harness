@@ -1,0 +1,48 @@
+[
+  {
+    "agentType": "claude_code",
+    "codexDaemonMigration": "untouched",
+    "command": "claude --model claude-opus-5-5",
+    "icon": "seal",
+    "id": "50ABF025-6A97-5286-8671-5C5128553B3E",
+    "isActive": true,
+    "maestroMode": false,
+    "name": "Claude Code · opus-5-5",
+    "startInChatMode": false,
+    "personas": [
+      "analyst"
+    ]
+  },
+  {
+    "agentType": "open_code",
+    "codexDaemonMigration": "untouched",
+    "command": "opencode -m opencode-go/deepseek-v4.1-flash",
+    "icon": "rectangle.portrait",
+    "id": "4CE5F478-DC7A-5715-8396-15735172BDCE",
+    "isActive": true,
+    "maestroMode": false,
+    "name": "OpenCode · deepseek-v4.1-flash",
+    "startInChatMode": false,
+    "personas": [
+      "developer",
+      "qa"
+    ]
+  },
+  {
+    "agentType": "claude_code",
+    "codexDaemonMigration": "untouched",
+    "command": "claude --model claude-sonnet-5-5",
+    "icon": "seal",
+    "id": "1714E707-A723-5DC8-BC08-CDB5D3514757",
+    "isActive": true,
+    "maestroMode": false,
+    "name": "Claude Code · sonnet-5-5",
+    "startInChatMode": false,
+    "personas": [
+      "harness-curator",
+      "orchestrator",
+      "reviewer",
+      "support"
+    ]
+  }
+]

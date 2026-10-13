@@ -5,7 +5,7 @@ license: MIT
 metadata:
   harness.type: workflow
   harness.scope: generic
-  harness.version: 1.2.0
+  harness.version: 1.3.0
   harness.status: active
   harness.applies-to: "task:feature,bugfix,refactor"
   harness.sources: "https://github.com/obra/superpowers, https://google.github.io/eng-practices/"
@@ -41,7 +41,11 @@ The `orchestrator` drives this workflow. Every stage writes its evidence to `.ha
 Rules for the loop:
 - After a fix, return to stage 4 when the code changed materially; otherwise go to stage 5.
 - After three loops without convergence, stop and escalate to the human with a summary.
-- The human may skip stages 1–2 for trivial changes. The orchestrator records the skip in `00-orchestration.md`.
+- **Classify the request first** (orchestrator, recorded in `00-orchestration.md` with the reason):
+  - **Analysed change** → stages 1–2 (analyst) come before stage 3 (developer). This applies whenever doing it right requires **understanding code**, or **choosing** the scope, the approach, the architecture or the affected files, or when the request is ambiguous or touches several components. The analyst defines the scope, the architecture impact, the risks and the plan, and the developer starts only after `02-plan.md` exists and has been approved.
+  - **Direct task** → skip stages 1–2 and 4–5. This applies to a single explicit action whose target the request already names, with no decision to make and no code to understand: "delete file X", "rename Y to Z", "run command C", "set key K to V in file F". The orchestrator delegates it straight to an executor (the `developer`, on the profile's cheap model) and records the command run and its output as the evidence. If the action is destructive or outward-facing (deleting, pushing, publishing), `change-authorization` still applies: confirm the target and get the human's "yes" first.
+  - When in doubt, treat it as an analysed change. If a direct task turns out to need understanding, the executor stops and hands it back for analysis.
+- The human can always force either path ("pode pular a análise" / "analisa antes").
 
 ### Evidence file format
 

@@ -5,11 +5,11 @@ license: MIT
 metadata:
   harness.type: agent
   harness.scope: generic
-  harness.version: 1.0.0
+  harness.version: 1.1.0
   harness.status: active
   harness.edits-code: "true"
   harness.sources: "https://github.com/obra/superpowers/tree/main/skills/test-driven-development, https://github.com/obra/superpowers/tree/main/skills/executing-plans"
-  harness.reviewed: "2026-10-12"
+  harness.reviewed: "2026-10-13"
   harness.tags: "implementation,tdd"
 ---
 
@@ -18,11 +18,15 @@ metadata:
 ## Responsibilities
 
 1. Work in an isolated branch or worktree (Maestri floor, `git worktree` or the profile's branch convention). Start from an up-to-date base.
-2. Follow `02-plan.md` step by step. If the plan is wrong, stop and report back to the orchestrator; don't silently redesign it.
-3. For each step: write or adjust a test, see it fail for the right reason, implement, run the tests, then commit locally if the profile allows intermediate commits.
-4. Load the skills for the stack you're working in (for example `java-spring-boot`, `python-pytest`) and follow `code-quality` and `security-baseline`.
-5. Write `.harness/runs/<story>/03-development.md` with the steps done, the commands run with their exit codes and output excerpts, the files changed and any deviations from the plan.
-6. When applying review or QA findings, record each finding as fixed, disputed (with the reason) or deferred in `06-fix.md`.
+2. **Before you change anything, check what kind of task you received.**
+   - An **analysed change** needs the analyst's `.harness/runs/<story>/02-plan.md`. If it's missing, don't start; ask the orchestrator to route the task to the `analyst`.
+   - A **direct task** (a single explicit action with a named target, such as "delete file X") is done right away, with no plan. Record the command and its output.
+   - If a "direct" task turns out to require understanding code or making a choice, stop and hand it back for analysis.
+3. Follow `02-plan.md` step by step. If the plan is wrong, stop and report back to the orchestrator; don't silently redesign it.
+4. For each step: write or adjust a test, see it fail for the right reason, implement, run the tests, then commit locally if the profile allows intermediate commits.
+5. Load the skills for the stack you're working in (for example `java-spring-boot`, `python-pytest`) and follow `code-quality` and `security-baseline`.
+6. Write `.harness/runs/<story>/03-development.md` with the steps done, the commands run with their exit codes and output excerpts, the files changed and any deviations from the plan.
+7. When applying review or QA findings, record each finding as fixed, disputed (with the reason) or deferred in `06-fix.md`.
 
 ## Never
 

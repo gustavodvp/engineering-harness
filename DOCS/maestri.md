@@ -28,7 +28,7 @@ O `orchestrator` (o Maestro) decide quem chamar pela tabela de roteamento de [`A
 
 | Persona | PERSONAL | ITAU (a confirmar) |
 |---|---|---|
-| orchestrator (Maestro) | Claude Code · claude-opus-5-5 | Claude Code · claude-sonnet-5-5 |
+| orchestrator (Maestro) | Claude Code · claude-sonnet-5-5 | Claude Code · claude-sonnet-5-5 |
 | analyst | Claude Code · claude-opus-5-5 | Claude Code · claude-opus-5-5 |
 | developer | OpenCode · opencode-go/deepseek-v4.1-flash | Devin CLI · modelo barato (fora do canvas) |
 | reviewer | Claude Code · claude-sonnet-5-5 | Claude Code · claude-sonnet-5-5 |
@@ -36,6 +36,33 @@ O `orchestrator` (o Maestro) decide quem chamar pela tabela de roteamento de [`A
 | support | Claude Code · claude-sonnet-5-5 | Claude Code · claude-sonnet-5-5 |
 
 O Devin não tem preset no Maestri. No ITAU, o script gerado marca essas personas como "run it outside the canvas", e o Maestro delega por terminal shell (`devin ...`) ou o humano roda. Isso ainda precisa ser verificado no ambiente corporativo.
+
+Regra do dono: **o orquestrador sempre roda no modelo mais leve (Sonnet); o Opus fica só com o analista.** Um teste garante isso no perfil PERSONAL.
+
+## Modelos: vêm do preset, não do role
+
+No Maestri, **o modelo de um terminal é definido pelo preset (o comando que ele executa), nunca pelo role**. Roles só carregam o prompt. Os presets de fábrica (`Claude Code` = `claude`, `OpenCode` = `opencode`) abrem no modelo padrão de cada CLI: no Claude Code é o `model` de `~/.claude/settings.json` ou o último `/model` usado, que costuma ser diferente do que a persona pede.
+
+Por isso o harness gera **um preset por modelo** a partir do perfil:
+
+```powershell
+uv run harness maestri-presets --profile PERSONAL             # mostra os presets e quais personas usam cada um
+# feche o Maestri (inclusive na bandeja) e então:
+uv run harness maestri-presets --profile PERSONAL --install   # grava em ~/.maestri/preferences.json
+```
+
+| Preset | Comando | Personas (PERSONAL) |
+|---|---|---|
+| `Claude Code · opus-5-5` | `claude --model claude-opus-5-5` | analyst |
+| `Claude Code · sonnet-5-5` | `claude --model claude-sonnet-5-5` | orchestrator, reviewer, support, harness-curator |
+| `OpenCode · deepseek-v4.1-flash` | `opencode -m opencode-go/deepseek-v4.1-flash` | developer, qa |
+
+- O `--install` recusa rodar com o Maestri aberto, porque o app regravaria o arquivo. Ele faz backup em `~/.maestri/backups/`, não mexe nos presets de fábrica e só adiciona ou atualiza os do harness (os ids são estáveis).
+- **Maestro:** crie o terminal do Maestro com o preset `Claude Code · sonnet-5-5`, ligue o Maestro Mode e **atribua a ele o role `Orchestrator`** na UI. Sem esse role, o Maestro é um Claude Code comum e só segue o que estiver no `AGENTS.md`. O bloco gerado do `AGENTS.md` também traz o fluxo obrigatório (analista primeiro), como reforço.
+- **Recrutas:** o `maestri-roles.ps1` lista `--preset "<preset da persona>"`, com `--command` como alternativa. Na UI, escolha o preset da tabela.
+- **Conferência automática:**
+  - cada role diz ao agente o modelo esperado, e ele avisa se estiver em outro;
+  - `harness usage --maestri-workspace "<ws>" [--floor "<floor>"] --profile PERSONAL` compara o modelo medido de cada agente com o do perfil (seção "Model check"), e o curador usa isso na retrospectiva.
 
 ## Gerar e aplicar os roles
 
