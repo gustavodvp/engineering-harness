@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.harness/denylist.local
+*.egg-info/
+.coverage
+coverage.xml
+.maestri/

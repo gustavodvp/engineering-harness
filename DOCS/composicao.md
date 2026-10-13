@@ -1,0 +1,57 @@
+# Composição e resolução
+
+`harness compose <projeto> --profile <P> --task <t> [--story S] [--stack x] [--dry-run] [--allow-conflicts]`
+
+## 1. Detecção e seleção
+
+1. Detecta o stack pelos arquivos do projeto: `pom.xml` e `build.gradle` → java, `pyproject.toml` → python, `go.mod` → go, `*.sql` e `db/migration` → sql, `Dockerfile`, `*.tf`, `.github/workflows`. Também lê dicas no conteúdo (`spring-boot`, `fastapi`, `pytest`, `boto3`...).
+2. Carrega só unidades `active`, do núcleo genérico e do perfil ativo (mais os perfis em `extends`). **Os outros perfis nunca entram.**
+3. Uma unidade entra se **cada** seletor que ela declara intersecta o contexto. Sem seletor, entra sempre.
+4. Os itens não carregados também aparecem no relatório, com o motivo.
+
+## 2. Camadas e precedência
+
+| Camada | Origem | Observação |
+|---|---|---|
+| 1 | regras genéricas | base |
+| 2 | skills e workflows genéricos | conhecimento sob demanda |
+| 3 | perfil ativo | convenções do ambiente |
+| 4 | instruções do projeto (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`...) | **lidas e reportadas, nunca reescritas**. O harness só mantém o próprio bloco marcado |
+| 5 | critérios da história (`--story`, frontmatter opcional com `decides`/`overrides`) | mais específica |
+
+Uma camada mais alta **não** vence só por ser mais alta: ela precisa **declarar** o override.
+
+## 3. Resolução de decisões
+
+Cada regra declara o que decide em `harness.decides` (`chave=valor`). Para cada chave:
+
+- **Mesmo valor em várias regras**: elas são complementares, não há conflito. Exemplo: `ci.disable-checks=forbidden` vem do genérico e do ITAU.
+- **Valores diferentes, e a camada superior declara `overrides: <id-perdedor>#<chave>`**: vale o override, que fica registrado em "Overrides applied". O texto genérico não é alterado.
+- **Valores diferentes sem override declarado**: é **conflito não resolvido**. O `compose` sai com código 3 e não grava nada, a não ser com `--allow-conflicts`.
+- **A regra perdedora é `mandatory`**: é conflito sempre. Segurança e autorização não são sobrescritas por perfil, projeto ou história.
+
+O `harness lint` roda a mesma resolução para cada perfil (genérico + perfil), e conflitos viram erro de CI.
+
+## 4. Saída e rastreabilidade
+
+`.harness/resolution.md` responde, para o agente e para você:
+- quais regras se aplicam e **por quê** (seletor casado);
+- **de qual pasta** vieram e em que versão;
+- o que foi **substituído** (overrides) ou **complementado** (mesmo valor);
+- **conflitos** não resolvidos e alvos de override inexistentes;
+- quais instruções do projeto existem e precisam ser respeitadas.
+
+## 5. Arquivos gerados e drift
+
+- Cada arquivo gerado tem o cabeçalho `GENERATED ... Do not edit`, e o hash dele fica em `.harness/lock.json`.
+- `harness drift <projeto>` aponta arquivos gerados que foram editados à mão. No `AGENTS.md`, só o bloco do harness é verificado.
+- Rodar o `compose` de novo remove arquivos que deixaram de ser selecionados e substitui o bloco no `AGENTS.md`, preservando o texto do projeto.
+
+## Exemplo real (demo, perfil ITAU, Java)
+
+```text
+uv run harness compose TESTS/fixtures/java-service --profile ITAU --task feature --dry-run
+→ carrega itau/rule/sonar-quality-gate, generic/skill/java-spring-boot, generic/skill/sql-data-modeling...
+→ override: git.merge-strategy  itau/rule/pull-requests (squash-when-procedure-allows) substitui generic/rule/git-commits (repository-policy)
+→ conflitos: none · regras pessoais carregadas: nenhuma
+```

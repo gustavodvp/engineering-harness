@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gustavodvp/engineering-harness/schema/profile.schema.json",
+  "title": "Harness environment profile (PROFILE.md)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description", "status", "models"],
+  "definitions": {
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "model", "confirmed"],
+      "properties": {
+        "tool": {"enum": ["claude-code", "opencode", "devin", "codex", "maestri"]},
+        "model": {"type": "string", "minLength": 1},
+        "maestri-preset": {"type": "string"},
+        "confirmed": {"type": "boolean"},
+        "note": {"type": "string"}
+      }
+    }
+  },
+  "properties": {
+    "name": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "description": {"type": "string", "minLength": 1},
+    "status": {"enum": ["draft", "active", "deprecated"]},
+    "extends": {"type": "array", "items": {"type": "string"}},
+    "models": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+      "additionalProperties": {"$ref": "#/definitions/assignment"}
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["approx-limit", "confirmed"],
+        "properties": {
+          "approx-limit": {"type": "string"},
+          "unit": {"type": "string"},
+          "period": {"type": "string"},
+          "confirmed": {"type": "boolean"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["available", "confirmed"],
+        "properties": {
+          "available": {"type": "boolean"},
+          "confirmed": {"type": "boolean"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "reviewed": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+  }
+}

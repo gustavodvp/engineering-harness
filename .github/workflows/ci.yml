@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - name: Lint harness (structure, schema, conflicts, links, confidentiality)
+        run: uv run harness lint --strict
+      - name: Tests
+        run: uv run pytest -q
+      - name: Generated files of the demo are up to date
+        run: uv run harness drift EXAMPLES/demo-python-api
+      - name: Exported skills follow the Agent Skills spec
+        run: for d in EXAMPLES/demo-python-api/.agents/skills/*/; do uv run agentskills validate "$d"; done

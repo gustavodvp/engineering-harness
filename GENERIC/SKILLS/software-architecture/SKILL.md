@@ -1,0 +1,69 @@
+---
+name: software-architecture
+description: Architecture and design decisions - SOLID, DDD (bounded contexts, aggregates, ubiquitous language), Clean/Hexagonal architecture, distributed systems trade-offs (consistency, idempotency, sagas, outbox, resilience), design patterns and ADRs. Use when designing a feature or service, evaluating a structure, or recording a decision.
+license: MIT
+metadata:
+  harness.type: skill
+  harness.scope: generic
+  harness.version: 1.0.0
+  harness.status: active
+  harness.applies-to: "task:analysis,feature,refactor,review"
+  harness.sources: "https://martinfowler.com/architecture/, https://www.domainlanguage.com/ddd/reference/, https://alistair.cockburn.us/hexagonal-architecture/, https://adr.github.io/, https://microservices.io/patterns/, https://learn.microsoft.com/en-us/azure/architecture/patterns/"
+  harness.reviewed: "2026-10-12"
+  harness.tags: "architecture,ddd,design-patterns,distributed-systems"
+---
+
+# Software architecture
+
+## Start from forces, not patterns
+
+Before you propose a structure, write down the **drivers**: the functional scope, the quality attributes with numbers (latency, throughput, availability, consistency, security, cost), the constraints (team, stack, platform, compliance) and the expected change. A pattern is justified only by a driver. When the drivers don't demand more, the simplest design that meets them wins.
+
+## Design principles
+
+- **SOLID**, applied pragmatically: single responsibility (one reason to change), open/closed (extend through new code where variation is real), Liskov (subtypes honour contracts), interface segregation (small client-specific interfaces), dependency inversion (policy doesn't depend on details).
+- Prefer composition over inheritance. Keep cohesion high and coupling low, and know what is public versus internal.
+- Make illegal states unrepresentable with types (value objects, sealed hierarchies).
+
+## Domain-Driven Design
+
+- **Ubiquitous language**: code names match the domain terms the experts use.
+- **Bounded contexts** have explicit boundaries and integrate through contracts (APIs, events), with an anti-corruption layer for foreign models. A context map documents the relationships.
+- **Aggregates** are consistency boundaries: one transaction modifies one aggregate, other aggregates are referenced by id, and invariants are enforced inside the aggregate root. Keep them small.
+- Entities have identity, value objects have none and are immutable, domain services hold logic that belongs to no single entity, and domain events record facts.
+- Use DDD tactics only where the domain is complex. CRUD areas don't need them.
+
+## Clean / Hexagonal architecture
+
+- Dependencies point **inward**: domain ← application (use cases) ← adapters (web, persistence, messaging). The domain has no framework imports.
+- Ports are interfaces owned by the inner layers, and adapters implement them. This makes the core testable without I/O.
+- Don't create layers mechanically. A small service may need only `api / domain / infra`.
+
+## Distributed systems
+
+- **Idempotency**: every message handler and retried API call must be safe to repeat (idempotency keys, dedup tables, natural keys).
+- **Consistency**: prefer eventual consistency between contexts. For a distributed transaction, use a **saga** (choreography or orchestration with compensations), not two-phase commit.
+- **Transactional outbox**: write the state and the event atomically, then publish. Never "commit, then publish" without the outbox.
+- **Resilience**: timeouts on every remote call, retries with backoff and jitter **only** for idempotent operations, circuit breakers, bulkheads, back-pressure. Make degradation explicit.
+- **Data ownership**: one service owns each piece of data, with no shared database between services.
+- Consider the **fallacies of distributed computing**: the network is unreliable, latency isn't zero, and so on. Every call can fail, be slow, or succeed without you knowing.
+- Observability is part of the design: correlation ids, traces across boundaries, SLIs and SLOs.
+
+## Patterns, with care
+
+Use a pattern when it removes real duplication or isolates real variation: Strategy, Factory, Adapter, Decorator, Template Method, Observer/Events, Repository, Specification. Name it in the code only when that helps the reader. Pattern-driven design with no driver behind it is accidental complexity.
+
+## Architecture Decision Records
+
+Record decisions that are costly to reverse as an ADR (`docs/adr/NNNN-title.md`):
+
+```markdown
+# NNNN. Title
+- Status: proposed | accepted | superseded by NNNN
+## Context        (forces, constraints, numbers)
+## Options        (at least two, with trade-offs)
+## Decision       (what and why)
+## Consequences   (positive, negative, follow-ups)
+```
+
+Superseded ADRs are kept, never deleted.

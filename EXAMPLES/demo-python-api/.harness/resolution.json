@@ -1,0 +1,315 @@
+{
+  "generated_at": "2026-10-13T01:28:11+00:00",
+  "profile": "PERSONAL",
+  "context": {
+    "task": [
+      "feature"
+    ],
+    "stack": [
+      "fastapi",
+      "pytest",
+      "python"
+    ]
+  },
+  "layers": {
+    "1": "generic rules",
+    "2": "specialized skills and workflows",
+    "3": "active profile",
+    "4": "project instructions",
+    "5": "story criteria"
+  },
+  "loaded": [
+    {
+      "id": "generic/rule/change-authorization",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/change-authorization/RULE.md",
+      "reason": "generic: applies to every task (no selector)",
+      "enforcement": "mandatory",
+      "decides": {
+        "change.publish": "explicit-authorization",
+        "ci.disable-checks": "forbidden"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/rule/code-quality",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/code-quality/RULE.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {
+        "quality.tests-with-change": "required"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/rule/confidentiality",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/confidentiality/RULE.md",
+      "reason": "generic: applies to every task (no selector)",
+      "enforcement": "mandatory",
+      "decides": {
+        "confidentiality.business-data-in-harness": "forbidden"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/rule/evidence-before-claims",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/evidence-before-claims/RULE.md",
+      "reason": "generic: applies to every task (no selector)",
+      "enforcement": "mandatory",
+      "decides": {
+        "verification.claims": "require-evidence"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/rule/git-commits",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/git-commits/RULE.md",
+      "reason": "generic: applies to every task (no selector)",
+      "enforcement": "default",
+      "decides": {
+        "git.commit-style": "conventional-commits",
+        "git.merge-strategy": "repository-policy"
+      },
+      "overridden_keys": [
+        "git.merge-strategy"
+      ]
+    },
+    {
+      "id": "generic/rule/security-baseline",
+      "type": "rule",
+      "layer": 1,
+      "version": "1.0.0",
+      "source": "GENERIC/RULES/security-baseline/RULE.md",
+      "reason": "generic: applies to every task (no selector)",
+      "enforcement": "mandatory",
+      "decides": {
+        "security.secrets-in-repo": "forbidden"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/application-security-owasp",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/application-security-owasp/SKILL.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/code-review",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/code-review/SKILL.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/python-pytest",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/python-pytest/SKILL.md",
+      "reason": "generic: matched stack:fastapi,pytest,python",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/software-architecture",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/software-architecture/SKILL.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/systematic-debugging",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/systematic-debugging/SKILL.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/skill/testing-strategy",
+      "type": "skill",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/SKILLS/testing-strategy/SKILL.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/workflow/run-retrospective",
+      "type": "workflow",
+      "layer": 2,
+      "version": "1.0.0",
+      "source": "GENERIC/WORKFLOWS/run-retrospective/WORKFLOW.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "generic/workflow/story-delivery",
+      "type": "workflow",
+      "layer": 2,
+      "version": "1.2.0",
+      "source": "GENERIC/WORKFLOWS/story-delivery/WORKFLOW.md",
+      "reason": "generic: matched task:feature",
+      "enforcement": "default",
+      "decides": {},
+      "overridden_keys": []
+    },
+    {
+      "id": "personal/rule/owner-validation",
+      "type": "rule",
+      "layer": 3,
+      "version": "1.0.0",
+      "source": "PROFILES/PERSONAL/RULES/owner-validation/RULE.md",
+      "reason": "profile PERSONAL: matched task:feature",
+      "enforcement": "default",
+      "decides": {
+        "verification.owner-validation": "before-commit-atlas",
+        "testing.database": "isolated"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "personal/rule/personal-code-style",
+      "type": "rule",
+      "layer": 3,
+      "version": "1.0.0",
+      "source": "PROFILES/PERSONAL/RULES/personal-code-style/RULE.md",
+      "reason": "profile PERSONAL: matched task:feature",
+      "enforcement": "default",
+      "decides": {
+        "deps.policy": "stdlib-first"
+      },
+      "overridden_keys": []
+    },
+    {
+      "id": "personal/rule/personal-git-flow",
+      "type": "rule",
+      "layer": 3,
+      "version": "1.0.0",
+      "source": "PROFILES/PERSONAL/RULES/personal-git-flow/RULE.md",
+      "reason": "profile PERSONAL: applies to every task (no selector)",
+      "enforcement": "default",
+      "decides": {
+        "git.merge-strategy": "squash",
+        "git.task-isolation": "worktree-or-floor"
+      },
+      "overridden_keys": []
+    }
+  ],
+  "not_loaded": [
+    {
+      "id": "generic/skill/java-spring-boot",
+      "reason": "generic: stack not in ['gradle', 'java', 'maven', 'spring']"
+    },
+    {
+      "id": "generic/skill/sql-data-modeling",
+      "reason": "generic: stack not in ['sql']"
+    },
+    {
+      "id": "generic/workflow/knowledge-evolution",
+      "reason": "generic: task not in ['analysis', 'docs']"
+    },
+    {
+      "id": "generic/workflow/support-ticket",
+      "reason": "generic: task not in ['incident', 'support']"
+    }
+  ],
+  "project_instructions": [],
+  "story": "STORY.md",
+  "effective_decisions": {
+    "change.publish": {
+      "value": "explicit-authorization",
+      "source": "generic/rule/change-authorization"
+    },
+    "ci.disable-checks": {
+      "value": "forbidden",
+      "source": "generic/rule/change-authorization"
+    },
+    "confidentiality.business-data-in-harness": {
+      "value": "forbidden",
+      "source": "generic/rule/confidentiality"
+    },
+    "deps.policy": {
+      "value": "stdlib-first",
+      "source": "personal/rule/personal-code-style"
+    },
+    "git.commit-style": {
+      "value": "conventional-commits",
+      "source": "generic/rule/git-commits"
+    },
+    "git.merge-strategy": {
+      "value": "squash",
+      "source": "personal/rule/personal-git-flow"
+    },
+    "git.task-isolation": {
+      "value": "worktree-or-floor",
+      "source": "personal/rule/personal-git-flow"
+    },
+    "quality.tests-with-change": {
+      "value": "required",
+      "source": "generic/rule/code-quality"
+    },
+    "security.secrets-in-repo": {
+      "value": "forbidden",
+      "source": "generic/rule/security-baseline"
+    },
+    "testing.database": {
+      "value": "isolated",
+      "source": "personal/rule/owner-validation"
+    },
+    "verification.claims": {
+      "value": "require-evidence",
+      "source": "generic/rule/evidence-before-claims"
+    },
+    "verification.owner-validation": {
+      "value": "before-commit-atlas",
+      "source": "personal/rule/owner-validation"
+    }
+  },
+  "overrides": [
+    {
+      "key": "git.merge-strategy",
+      "winner": "personal/rule/personal-git-flow",
+      "loser": "generic/rule/git-commits",
+      "winner_value": "squash",
+      "loser_value": "repository-policy"
+    }
+  ],
+  "conflicts": [],
+  "missing_override_targets": []
+}
